@@ -88,6 +88,13 @@ public class BullyAlgorithm implements Runnable {
                 }
             }
         }
+
+        else if(operation.equals("SENDER")) {
+            // Start Election
+            // Send OK for Election Request
+            // Send Co ordination message
+
+        }
     }
 
     public static void main(String[] args) throws UnknownHostException {
