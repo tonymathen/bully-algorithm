@@ -1,0 +1,48 @@
+version: "1"
+services:
+  node1:
+    container_name: "node1"
+    hostname: "node1"
+    image: bully_algorithm_image
+    command: java BullyAlgorithm
+    depends_on:
+      - node3
+    build:
+      context: .
+      dockerfile: Dockerfile
+#    ports:
+#      - 8090:8080
+    networks:
+      - node_network
+
+  node2:
+    container_name: "node2"
+    hostname: "node2"
+    image: bully_algorithm_image
+    command: java BullyAlgorithm
+    depends_on:
+      - node3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8091:8080
+    networks:
+      - node_network
+
+  node3:
+    container_name: "node3"
+    hostname: "node3"
+    image: bully_algorithm_image
+    command: java BullyAlgorithm
+    build:
+      context: .
+      dockerfile: Dockerfile
+#    ports:
+#      - 8092:8080
+    networks:
+      - node_network
+
+networks:
+  node_network:
+    driver: bridge
