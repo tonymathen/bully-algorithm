@@ -1,3 +1,4 @@
+import javax.xml.crypto.Data;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -94,6 +95,25 @@ public class BullyAlgorithm implements Runnable {
             // Send OK for Election Request
             // Send Co ordination message
 
+        }
+    }
+
+    public static void startElection() {
+        for (int peerNodeId: nodes.keySet()) {
+            if (peerNodeId > nodeId) {
+                String peerNode = nodes.get(peerNodeId);
+
+                try {
+                    Socket socket = new Socket(peerNode, nodeServerPort);
+                    DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+
+                    //Send Election Request
+
+
+                } catch(Exception e) {
+                    //PeerNode has failed
+                }
+            }
         }
     }
 
