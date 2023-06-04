@@ -1,19 +1,24 @@
-import javax.xml.crypto.Data;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.net.*;
 import java.util.HashMap;
 
 public class BullyAlgorithm implements Runnable {
     static int nodeId = -1;
     static HashMap<Integer,String> nodes= new HashMap<>();
-    String operation;
+    String mode;
     static int leaderId = 3;
     static int nodeServerPort = 8070;
+    static int senderNodeId = -1;
+    String messageType;
 
-    public BullyAlgorithm(String operation) {
-        this.operation = operation;
+    public BullyAlgorithm(String mode) {
+        this.mode = mode;
+    }
+
+    public BullyAlgorithm(String mode, String messageType) {
+        this.mode = mode;
+        this.messageType = messageType;
     }
 
     public static void initializeNodes() throws UnknownHostException {
@@ -45,8 +50,8 @@ public class BullyAlgorithm implements Runnable {
     @Override
     public void run(){
         System.out.println("Inside run for "+nodeId);
-        System.out.println("Operation for "+nodeId + " is "+ operation);
-        if(operation.equals("RECEIVER")){
+        System.out.println("Operation for "+nodeId + " is "+ mode);
+        if(mode.equals("RECEIVER")){
             ServerSocket serverSocket = null;
             try{
                 serverSocket = new ServerSocket(nodeServerPort);
@@ -54,9 +59,20 @@ public class BullyAlgorithm implements Runnable {
                     Socket socket = serverSocket.accept();
                     DataInputStream in = new DataInputStream(socket.getInputStream());
                     String option=in.readUTF();
+
                     if(option.equals("HEARTBEAT")){
                         int sender=Integer.parseInt(in.readUTF());
                         System.out.println("HEARTBEAT received from "+nodes.get(sender));
+                    }
+
+                    else if (option.equals("ELECTION")) {
+                        senderNodeId = Integer.parseInt(in.readUTF());
+                        //Start own election if node has higher priority than sender node
+                        if(senderNodeId < nodeId){
+                            Runnable sender = new BullyAlgorithm("SENDER","OK");
+                            new Thread(sender).start();
+                        }
+
                     }
                     socket.close();
                 }
@@ -67,7 +83,7 @@ public class BullyAlgorithm implements Runnable {
             }
         }
 
-        else if(operation.equals("HEARTBEAT")){
+        else if(mode.equals("HEARTBEAT")){
             while(true){
                 try{
                     System.out.print("");
@@ -90,7 +106,7 @@ public class BullyAlgorithm implements Runnable {
             }
         }
 
-        else if(operation.equals("SENDER")) {
+        else if(mode.equals("SENDER")) {
             // Start Election
             // Send OK for Election Request
             // Send Co ordination message
@@ -99,19 +115,24 @@ public class BullyAlgorithm implements Runnable {
     }
 
     public static void startElection() {
+        int failedNodes = 0;
         for (int peerNodeId: nodes.keySet()) {
+            //Find all peer nodes having a greater ID
             if (peerNodeId > nodeId) {
                 String peerNode = nodes.get(peerNodeId);
 
                 try {
                     Socket socket = new Socket(peerNode, nodeServerPort);
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-
-                    //Send Election Request
+                    out.writeUTF("ELECTION");
+                    out.writeUTF(nodeId + "");
+                    System.out.println("Sent Election Request to : "+peerNode);
 
 
                 } catch(Exception e) {
                     //PeerNode has failed
+                    failedNodes++;
+
                 }
             }
         }
