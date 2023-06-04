@@ -1,4 +1,3 @@
-import javax.xml.crypto.Data;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.*;
@@ -12,6 +11,10 @@ public class BullyAlgorithm implements Runnable {
     static int nodeServerPort = 8070;
     static int senderNodeId = -1;
     String messageType;
+    static boolean electionInProgress = false;
+    static boolean receivedOk = false;
+
+    static boolean isLeader = false;
 
     public BullyAlgorithm(String mode) {
         this.mode = mode;
@@ -77,6 +80,13 @@ public class BullyAlgorithm implements Runnable {
                             new Thread(sender).start();
                         }
 
+                        if(!electionInProgress){
+                            electionInProgress = true;
+                            Runnable newElection = new BullyAlgorithm("SENDER", "ELECTION");
+                            new Thread(newElection).start();
+                            System.out.println(nodes.get(nodeId) + " started its election");
+                        }
+
                     }
                     else if (option.equals("OK")){
                         int senderId = Integer.parseInt(in.readUTF());
@@ -125,6 +135,23 @@ public class BullyAlgorithm implements Runnable {
                 sendOk();
             }
             // Send Co ordination message
+
+        }
+
+        else if(mode.equals("TIMER")){
+            System.out.println("Inside timer");
+            try{
+                Thread.sleep(7000);
+                leaderId = nodeId;
+                isLeader = true;
+                electionInProgress = false;
+                System.out.println("I am the new Leader");
+                //Start Coordination
+
+
+            }catch(Exception e){
+                //Timer interrupted
+            }
 
         }
     }
