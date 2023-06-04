@@ -1,3 +1,4 @@
+import javax.xml.crypto.Data;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.*;
@@ -32,6 +33,8 @@ public class BullyAlgorithm implements Runnable {
             case "node1":
                 nodeId = 1;
                 System.out.println("Node "+ nodeId + " has joined the network");
+                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
+                new Thread(sender).start();
                 break;
             case "node2":
                 nodeId = 2;
@@ -40,6 +43,7 @@ public class BullyAlgorithm implements Runnable {
             case "node3":
                 nodeId = 3;
                 System.out.println("Node "+ nodeId + " has joined the network");
+
                 break;
             default:
                 System.out.println("Node is not known to the network");
@@ -49,8 +53,8 @@ public class BullyAlgorithm implements Runnable {
 
     @Override
     public void run(){
-        System.out.println("Inside run for "+nodeId);
-        System.out.println("Operation for "+nodeId + " is "+ mode);
+//        System.out.println("Inside run for "+nodeId);
+//        System.out.println("Operation for "+nodeId + " is "+ mode);
         if(mode.equals("RECEIVER")){
             ServerSocket serverSocket = null;
             try{
@@ -108,7 +112,13 @@ public class BullyAlgorithm implements Runnable {
 
         else if(mode.equals("SENDER")) {
             // Start Election
+            if(messageType.equals("ELECTION")){
+                startElection();
+            }
             // Send OK for Election Request
+            else if(messageType.equals("OK")){
+                sendOk();
+            }
             // Send Co ordination message
 
         }
@@ -138,6 +148,20 @@ public class BullyAlgorithm implements Runnable {
         }
     }
 
+    public static void sendOk(){
+        try{
+            String peerNode = nodes.get(senderNodeId);
+            Socket socket = new Socket(peerNode, nodeServerPort);
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            out.writeUTF("OK");
+            out.writeUTF(nodeId + "");
+            System.out.printf("Sent OK Message to "+peerNode);
+        } catch (Exception e){
+            // Peer Node failed
+        }
+
+
+    }
     public static void main(String[] args) throws UnknownHostException {
         initializeNodes();
 //        System.out.println("Before Run");
@@ -145,9 +169,9 @@ public class BullyAlgorithm implements Runnable {
             Runnable receiver = new BullyAlgorithm("RECEIVER");
             new Thread(receiver).start();
 
-            System.out.println("Heartbeat from "+nodeId + " starting");
-            Runnable heartbeat = new BullyAlgorithm("HEARTBEAT");
-            new Thread(heartbeat).start();
+//            System.out.println("Heartbeat from "+nodeId + " starting");
+//            Runnable heartbeat = new BullyAlgorithm("HEARTBEAT");
+//            new Thread(heartbeat).start();
 
         while(true) {}
 
