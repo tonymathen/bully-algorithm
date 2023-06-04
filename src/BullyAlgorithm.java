@@ -33,8 +33,8 @@ public class BullyAlgorithm implements Runnable {
             case "node1":
                 nodeId = 1;
                 System.out.println("Node "+ nodeId + " has joined the network");
-                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
-                new Thread(sender).start();
+//                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
+//                new Thread(sender).start();
                 break;
             case "node2":
                 nodeId = 2;
@@ -76,6 +76,11 @@ public class BullyAlgorithm implements Runnable {
                             Runnable sender = new BullyAlgorithm("SENDER","OK");
                             new Thread(sender).start();
                         }
+
+                    }
+                    else if (option.equals("OK")){
+                        int senderId = Integer.parseInt(in.readUTF());
+                        System.out.println("Received OK from " +nodes.get(senderId));
 
                     }
                     socket.close();
@@ -155,7 +160,7 @@ public class BullyAlgorithm implements Runnable {
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             out.writeUTF("OK");
             out.writeUTF(nodeId + "");
-            System.out.printf("Sent OK Message to "+peerNode);
+            System.out.println("Sent OK to " +peerNode);
         } catch (Exception e){
             // Peer Node failed
         }
