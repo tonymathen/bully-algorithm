@@ -15,7 +15,7 @@ public class BullyAlgorithm implements Runnable {
     static boolean receivedOk = false;
 
     static boolean isLeader = false;
-
+    static int greaterNodes = 0;
     public BullyAlgorithm(String mode) {
         this.mode = mode;
     }
@@ -35,16 +35,19 @@ public class BullyAlgorithm implements Runnable {
         switch (nodeName){
             case "node1":
                 nodeId = 1;
+                greaterNodes = greaterNodes = countHigherPriorityNodes();
                 System.out.println("Node "+ nodeId + " has joined the network");
 //                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
 //                new Thread(sender).start();
                 break;
             case "node2":
                 nodeId = 2;
+                greaterNodes = greaterNodes = countHigherPriorityNodes();
                 System.out.println("Node "+ nodeId + " has joined the network");
                 break;
             case "node3":
                 nodeId = 3;
+                greaterNodes = greaterNodes = countHigherPriorityNodes();
                 System.out.println("Node "+ nodeId + " has joined the network");
 
                 break;
@@ -142,12 +145,13 @@ public class BullyAlgorithm implements Runnable {
             System.out.println("Inside timer");
             try{
                 Thread.sleep(7000);
-                leaderId = nodeId;
-                isLeader = true;
-                electionInProgress = false;
-                System.out.println("I am the new Leader");
-                //Start Coordination
-
+                if(!receivedOk){
+                    leaderId = nodeId;
+                    isLeader = true;
+                    electionInProgress = false;
+                    System.out.println("I am the new Leader");
+                    //Start Coordination
+                }
 
             }catch(Exception e){
                 //Timer interrupted
@@ -156,6 +160,15 @@ public class BullyAlgorithm implements Runnable {
         }
     }
 
+    public static int countHigherPriorityNodes(){
+        int countGreaterNodes = 0;
+        for(int peerNodeId:nodes.keySet()){
+            if(peerNodeId > nodeId){
+                countGreaterNodes++;
+            }
+        }
+        return countGreaterNodes;
+    }
     public static void startElection() {
         int failedNodes = 0;
         for (int peerNodeId: nodes.keySet()) {
@@ -177,6 +190,10 @@ public class BullyAlgorithm implements Runnable {
 
                 }
             }
+        }
+        if(failedNodes == greaterNodes){
+            //Start timer and wait before electing itself as leader
+
         }
     }
 
