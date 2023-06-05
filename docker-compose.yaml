@@ -5,8 +5,8 @@ services:
     hostname: "node1"
     image: bully_algorithm_image
     command: java BullyAlgorithm
-    depends_on:
-      - node3
+#    depends_on:
+#      - node3
     build:
       context: .
       dockerfile: Dockerfile
@@ -20,8 +20,8 @@ services:
     hostname: "node2"
     image: bully_algorithm_image
     command: java BullyAlgorithm
-    depends_on:
-      - node3
+#    depends_on:
+#      - node3
     build:
       context: .
       dockerfile: Dockerfile
