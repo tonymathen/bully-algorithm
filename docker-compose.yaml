@@ -15,20 +15,20 @@ services:
     networks:
       - node_network
 
-  node2:
-    container_name: "node2"
-    hostname: "node2"
-    image: bully_algorithm_image
-    command: java BullyAlgorithm
-#    depends_on:
-#      - node3
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - 8091:8080
-    networks:
-      - node_network
+#  node2:
+#    container_name: "node2"
+#    hostname: "node2"
+#    image: bully_algorithm_image
+#    command: java BullyAlgorithm
+##    depends_on:
+##      - node3
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - 8091:8080
+#    networks:
+#      - node_network
 
   node3:
     container_name: "node3"
@@ -43,6 +43,31 @@ services:
     networks:
       - node_network
 
+  node4:
+    container_name: "node4"
+    hostname: "node4"
+    image: bully_algorithm_image
+    command: java BullyAlgorithm
+    build:
+      context: .
+      dockerfile: Dockerfile
+    #    ports:
+    #      - 8092:8080
+    networks:
+      - node_network
+
+  node5:
+    container_name: "node5"
+    hostname: "node5"
+    image: bully_algorithm_image
+    command: java BullyAlgorithm
+    build:
+      context: .
+      dockerfile: Dockerfile
+    #    ports:
+    #      - 8092:8080
+    networks:
+      - node_network
 networks:
   node_network:
     driver: bridge

@@ -25,34 +25,55 @@ public class BullyAlgorithm implements Runnable {
         this.messageType = messageType;
     }
 
-    public static void initializeNodes() throws UnknownHostException {
+    public static void initializeNodes() throws UnknownHostException, InterruptedException {
         nodes.put(1,"node1");
         nodes.put(2,"node2");
         nodes.put(3,"node3");
+        nodes.put(4,"node4");
+        nodes.put(5,"node5");
         InetAddress iAddress = InetAddress.getLocalHost();
         String nodeName = iAddress.getHostName();
 
         switch (nodeName){
             case "node1":
+                Thread.sleep(1000);
                 nodeId = 1;
-                greaterNodes = greaterNodes = countHigherPriorityNodes();
+                greaterNodes = countHigherPriorityNodes();
                 System.out.println("Node "+ nodeId + " has joined the network");
-                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
-                new Thread(sender).start();
+//                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
+//                new Thread(sender).start();
                 break;
             case "node2":
                 nodeId = 2;
-                greaterNodes = greaterNodes = countHigherPriorityNodes();
+                greaterNodes = countHigherPriorityNodes();
                 System.out.println("Node "+ nodeId + " has joined the network");
                 break;
             case "node3":
                 nodeId = 3;
-                greaterNodes = greaterNodes = countHigherPriorityNodes();
+                greaterNodes = countHigherPriorityNodes();
                 System.out.println("Node "+ nodeId + " has joined the network");
-
+                break;
+            case "node4":
+                nodeId = 4;
+                greaterNodes = countHigherPriorityNodes();
+                System.out.println(greaterNodes);
+                System.out.println("Node "+ nodeId + " has joined the network");
+                break;
+            case "node5":
+                nodeId = 5;
+                greaterNodes = countHigherPriorityNodes();
+//                System.out.println("Inside Case 5");
+                System.out.println("Node "+ nodeId + " has joined the network");
                 break;
             default:
                 System.out.println("Node is not known to the network");
+        }
+        if(!isLeader) {
+            System.out.println("No leader for the network. New Election Starting");
+            electionInProgress = true;
+            Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
+            new Thread(sender).start();
+
         }
     }
 
@@ -88,10 +109,16 @@ public class BullyAlgorithm implements Runnable {
                             Runnable newElection = new BullyAlgorithm("SENDER", "ELECTION");
                             new Thread(newElection).start();
                             System.out.println(nodes.get(nodeId) + " started its election");
+
+                            Runnable timer = new BullyAlgorithm("TIMER");
+                            new Thread(timer).start();
+                            System.out.println("Timer thread started");
+
                         }
 
                     }
                     else if (option.equals("OK")){
+                        receivedOk = true;
                         int senderId = Integer.parseInt(in.readUTF());
                         System.out.println("Received OK from " +nodes.get(senderId));
 
@@ -100,7 +127,9 @@ public class BullyAlgorithm implements Runnable {
                         leaderId = Integer.parseInt(in.readUTF());
                         isLeader = true;
                         receivedOk = true;
+                        electionInProgress = false;
                         System.out.println(nodes.get(nodeId) + " has acknowledged leader as " +nodes.get(leaderId));
+                        System.out.println("Value of received "+receivedOk);
                     }
                     socket.close();
                 }
@@ -117,18 +146,24 @@ public class BullyAlgorithm implements Runnable {
                     System.out.print("");
 
                         Thread.sleep(2000);
-                        String peerNode=nodes.get(leaderId);
-                        System.out.println("Destination Server "+ peerNode + " Port "+nodeServerPort);
-                        Socket socket = new Socket(peerNode, nodeServerPort);
+                        String leaderNode=nodes.get(leaderId);
+                        System.out.println("Destination Server "+ leaderNode + " Port "+nodeServerPort);
+                        Socket socket = new Socket(leaderNode, nodeServerPort);
                         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                         out.writeUTF("HEARTBEAT");
                         out.writeUTF(nodeId+"");
 
-                        System.out.println("Sent HEARTBEAT to : "+peerNode);
+                        System.out.println("Sent HEARTBEAT to : "+leaderNode);
                 }
 
                 catch(Exception e){
-                    System.out.printf("Unable to connect .. retrying");
+                    System.out.printf("Leader has failed!");
+                    System.out.println(nodes.get(nodeId) + " starting election");
+                    isLeader = false;
+
+                    Runnable newElection = new BullyAlgorithm("SENDER", "ELECTION");
+                    new Thread(newElection).start();
+
 
                 }
             }
@@ -144,11 +179,14 @@ public class BullyAlgorithm implements Runnable {
                 sendOk();
             }
             // Send Co ordination message
+            else if(messageType.equals("COORDINATE")){
+                sendCoordinatorMessage();
+            }
+
 
         }
 
         else if(mode.equals("TIMER")){
-            System.out.println("Inside timer");
             try{
                 Thread.sleep(7000);
                 if(!receivedOk){
@@ -203,6 +241,8 @@ public class BullyAlgorithm implements Runnable {
         }
         if(failedNodes == greaterNodes){
             //Start timer and wait before electing itself as leader
+            System.out.println("Greater Nodes have Failed");
+            System.out.println("Timer started for declaring "+nodes.get(nodeId) + " as leader");
             electionInProgress = true;
             receivedOk = false;
             Runnable electionTimer = new BullyAlgorithm("TIMER");
@@ -224,6 +264,7 @@ public class BullyAlgorithm implements Runnable {
     }
 
     public static void sendCoordinatorMessage() {
+        System.out.println("Inside coordinator LeaderId value" +leaderId);
         for (int peerNodeId : nodes.keySet()) {
             if(peerNodeId != nodeId){
                 String peerNode = nodes.get(peerNodeId);
@@ -242,16 +283,19 @@ public class BullyAlgorithm implements Runnable {
             }
         }
     }
-    public static void main(String[] args) throws UnknownHostException {
+
+
+    public static void main(String[] args) throws UnknownHostException, InterruptedException {
         initializeNodes();
 //        System.out.println("Before Run");
+
             System.out.println("Receiver for "+nodeId + " starting");
             Runnable receiver = new BullyAlgorithm("RECEIVER");
             new Thread(receiver).start();
 
-//            System.out.println("Heartbeat from "+nodeId + " starting");
-//            Runnable heartbeat = new BullyAlgorithm("HEARTBEAT");
-//            new Thread(heartbeat).start();
+            System.out.println("Heartbeat from "+nodeId + " starting");
+            Runnable heartbeat = new BullyAlgorithm("HEARTBEAT");
+            new Thread(heartbeat).start();
 
         while(true) {}
 
