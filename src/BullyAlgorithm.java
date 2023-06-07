@@ -40,8 +40,8 @@ public class BullyAlgorithm implements Runnable {
                 nodeId = 1;
                 greaterNodes = countHigherPriorityNodes();
                 System.out.println("Node "+ nodeId + " has joined the network");
-//                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
-//                new Thread(sender).start();
+                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
+                new Thread(sender).start();
                 break;
             case "node2":
                 nodeId = 2;
@@ -62,19 +62,12 @@ public class BullyAlgorithm implements Runnable {
             case "node5":
                 nodeId = 5;
                 greaterNodes = countHigherPriorityNodes();
-//                System.out.println("Inside Case 5");
                 System.out.println("Node "+ nodeId + " has joined the network");
                 break;
             default:
                 System.out.println("Node is not known to the network");
         }
-        if(!isLeader) {
-            System.out.println("No leader for the network. New Election Starting");
-            electionInProgress = true;
-            Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
-            new Thread(sender).start();
 
-        }
     }
 
 
@@ -147,7 +140,6 @@ public class BullyAlgorithm implements Runnable {
 
                         Thread.sleep(2000);
                         String leaderNode=nodes.get(leaderId);
-                        System.out.println("Destination Server "+ leaderNode + " Port "+nodeServerPort);
                         Socket socket = new Socket(leaderNode, nodeServerPort);
                         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                         out.writeUTF("HEARTBEAT");
@@ -296,6 +288,15 @@ public class BullyAlgorithm implements Runnable {
             System.out.println("Heartbeat from "+nodeId + " starting");
             Runnable heartbeat = new BullyAlgorithm("HEARTBEAT");
             new Thread(heartbeat).start();
+
+//            if(!isLeader) {
+//                System.out.println("No leader for the network. New Election Starting");
+//                electionInProgress = true;
+//                Runnable sender = new BullyAlgorithm("SENDER", "ELECTION");
+//                new Thread(sender).start();
+//            }
+//            else if(nodeId > leaderId)
+
 
         while(true) {}
 
